@@ -1,8 +1,9 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text } from "react-native";
 import { Container, AreaInput, Input, List } from "./style";
 import Feather from 'react-native-vector-icons/Feather';
 import firestore from '@react-native-firebase/firestore';
+import SearchList from "../../components/SearchList";
 
 function Search() {
     const [input, setInput] = useState('');
@@ -15,38 +16,47 @@ function Search() {
         }
 
         const subscriber = firestore().collection('users')
-        .where('nome', '>=', input)
-        .where('nome', '<=', input + "\uf8ff")
-        .onSnapshot(snapshot => {
-            const listUsers = [];
+            .where('nome', '>=', input)
+            .where('nome', '<=', input + "\uf8ff")
+            .onSnapshot(snapshot => {
+                const listUsers = [];
 
-            snapshot.forEach(doc => {
-                listUsers.push({
-                    ...doc.data(),
-                    id: doc.id,
+                snapshot.forEach(doc => {
+                    listUsers.push({
+                        ...doc.data(),
+                        id: doc.id,
+                    })
                 })
+
+                //console.log(listUsers);
+                setUsers(listUsers);
             })
 
-            console.log(listUsers);
-        })
+            return () => subscriber();
 
     }, [input]);
 
     return (
         <Container>
             <AreaInput>
-                <Feather 
+                <Feather
                     name="search"
                     size={20}
                     color="#E52246"
+                />
+                <Input
                     value={input}
                     onChangeText={(text) => setInput(text)}
                     placeholderTextColor="#353840"
-                />
-                <Input 
                     placeholder="Procurando alguma pessoa?"
                 />
             </AreaInput>
+
+            <List 
+                data={users}
+                renderItem={({item}) => <SearchList data={item} /> }
+
+            />
         </Container>
     )
 }
