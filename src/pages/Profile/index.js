@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import Header from '../../components/Header';
 import { AuthContext } from "../../contexts/auth";
 import { Modal, Platform } from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
 import { 
     Container, 
     Name, 
@@ -17,6 +18,7 @@ import {
 } from "./styles";
 import Feather from 'react-native-vector-icons/Feather';
 import firestore from "@react-native-firebase/firestore";
+import storage from '@react-native-firebase/storage';
 
 function Profile() {
     const { signOut, user, setUser, storageUser } = useContext(AuthContext);
@@ -24,6 +26,33 @@ function Profile() {
     const [url, setUrl] = useState(null);
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(null);
+
+    const uploadFile = async () => {
+        const options = {
+            noData: true,
+            mediaType: 'photo'
+        }
+
+        await launchImageLibrary(options, response => {
+            if(response.didCancel) {
+                console.log('Cancelou')
+            } else if(response.error) {
+                console.log('Erro')
+            } else {
+                uploadFileFirebase(response)
+            }
+        })
+    }
+
+    const getFileLocationPath = (response) => {
+        return response.assets[0].uri;
+    }
+
+
+    const uploadFileFirebase = async (response) => {
+        const fileSource = getFileLocationPath(response)
+        console.log(fileSource)
+    }
 
     async function handleSignOut() {
         await signOut();
@@ -70,14 +99,14 @@ function Profile() {
         <Container>
             <Header />
             {url ? (
-                <UploadButton onPress={() => setOpen(true)}>
+                <UploadButton onPress={() => uploadFile()}>
                     <UploadText>+</UploadText>
                     <Avatar
                         source={{ uri: url }}
                     />
                 </UploadButton>
             ) : (
-                <UploadButton onPress={() => setOpen(true)}>
+                <UploadButton onPress={() => uploadFile()}>
                     <UploadText>+</UploadText>
                     <Avatar
                         source={require('../../assets/avatar.png')}
